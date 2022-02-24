@@ -17,7 +17,10 @@ get_spielbericht_urls <- function(x, sleep = 1) {
 } 
 
 # function for scraping results of a single match
-get_match_data <- function(link, sleep = 1) {
+get_match_data <- function(link, 
+                           sleep = 1, 
+                           locale = Sys.getlocale("LC_TIME")) # for system locale. I use  "German_Germany.1252" on Windows.
+  {
   
   # pause
   Sys.sleep(sleep)
@@ -33,7 +36,7 @@ get_match_data <- function(link, sleep = 1) {
   
   # obtain and return tibble with interesting variables
   tibble(
-    date = page %>% html_element("th:nth-child(2)") %>% html_text2() %>% str_replace("\\n", " ") %>% parse_date_time(orders = "%A, %d. %B %Y %H:%M", locale = "de_DE.UTF-8", tz = "Europe/Berlin"),  
+    date = page %>% html_element("th:nth-child(2)") %>% html_text2() %>% str_replace("\\n", " ") %>% parse_date_time(orders = "%A, %d. %B %Y %H:%M", locale = locale, tz = "Europe/Berlin"),  
     league = str_extract(link, pattern = "(?<=spielbericht/).+(?=-\\d{4}-\\d{4})"),
     season = str_extract(link, pattern = "\\d{4}-\\d{4}"),
     matchday = page %>% html_elements("select") %>% .[3] %>% html_elements("option[selected='selected']") %>% html_text() %>% parse_number(),
@@ -45,7 +48,9 @@ get_match_data <- function(link, sleep = 1) {
     yellow_home = sum(home_cards == "gelb"),
     yellow_away = sum(away_cards == "gelb"),
     red_home = sum(home_cards == "rot"),
-    red_away = sum(away_cards == "rot")
+    red_away = sum(away_cards == "rot"),
+    redyellow_home = sum(home_cards == "gelb-rot"),
+    redyellow_away = sum(away_cards == "gelb-rot")
   ) %>% 
     mutate(
       outcome = str_trim(outcome),
@@ -63,7 +68,7 @@ scrapes <- list()
 ############################################ A-League (Australia) #################################################
 
 # generate urls for 19/20, 20/21 spielplaene
-spielplaene <- rbind(
+spielplaene <- c(
   paste0(base_url, "/spielplan/aus-a-league-", "2019-2020", "-spieltag/", 1:26, "/"),
   paste0(base_url, "/spielplan/aus-a-league-", "2020-2021", "-spieltag/", 1:26, "/")
 )
@@ -95,7 +100,7 @@ scrapes$`AUS-ALeague` <- match_data
 ############################################ Kategoria Superiore (Albania) ########################################################
 
 # generate urls for 19/20, 20/21 spielplaene
-spielplaene <- rbind(
+spielplaene <- c(
   paste0(base_url, "/spielplan/alb-kategoria-superiore-", "2019-2020", "-spieltag/", 1:36, "/"),
   paste0(base_url, "/spielplan/alb-kategoria-superiore-", "2020-2021", "-spieltag/", 1:36, "/")
 )
@@ -131,7 +136,7 @@ scrapes$`ALB-KategoriaSuperiore` <- match_data
 ############################################ 1. Bundesliga (Austria) ########################################################
 
 # generate urls for 19/20, 20/21 spielplaene
-spielplaene <- rbind(
+spielplaene <- c(
   paste0(base_url, "/spielplan/aut-bundesliga-", "2019-2020", "-spieltag/", 1:22, "/"),
   paste0(base_url, "/spielplan/aut-bundesliga-", "2020-2021", "-spieltag/", 1:22, "/")
 )
@@ -197,7 +202,7 @@ scrapes$`AUT-Liga2` <- match_data
 ############################################ Primera Division (Costa Rica) ########################################################
 
 # generate urls for 19/20, 20/21 spielplaene
-spielplaene <- rbind(
+spielplaene <- c(
   paste0(base_url, "/spielplan/crc-primera-division-", "2019-2020", "-spieltag/", 1:30, "/"),
   paste0(base_url, "/spielplan/crc-primera-division-", "2020-2021", "-spieltag/", 1:30, "/")
 )
@@ -297,7 +302,7 @@ scrapes$`ENG-PremierLeague` <- match_data
 ############################################ Championship (England) ########################################################
 
 # generate urls for 19/20, 20/21 spielplaene
-spielplaene <- rbind(
+spielplaene <- c(
   paste0(base_url, "/spielplan/eng-championship-", "2019-2020", "-spieltag/", 1:46, "/"),
   paste0(base_url, "/spielplan/eng-championship-", "2020-2021", "-spieltag/", 1:46, "/")
 )
